@@ -36,6 +36,13 @@ export const sourceCache = pgTable("source_cache", {
   fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Admin-edited page copy, one row per section in lib/content/sections.ts. Missing fields fall back to defaults. */
+export const siteContent = pgTable("site_content", {
+  key: varchar("key", { length: 32 }).primaryKey(),
+  data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const pageviews = pgTable(
   "pageviews",
   {

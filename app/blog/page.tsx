@@ -1,38 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getContent } from "@/lib/content";
 import { countPublished, listPublished } from "@/lib/posts";
 
 export const revalidate = 300;
 
 const PER_PAGE = 12;
 
-export const metadata: Metadata = {
-  title: "Superintelligence Analysis — Daily Briefings",
-  description:
-    "Daily analysis of the latest developments in artificial superintelligence (ASI), AGI research, AI safety and policy.",
-  alternates: { canonical: "/blog" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const c = await getContent("blog");
+  return { title: c.metaTitle, description: c.metaDescription, alternates: { canonical: "/blog" } };
+}
 
 const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 export default async function BlogIndex({ searchParams }: PageProps<"/blog">) {
   const page = Math.max(1, Number((await searchParams).page) || 1);
-  const [posts, total] = await Promise.all([listPublished(PER_PAGE, (page - 1) * PER_PAGE), countPublished()]);
+  const [posts, total, c] = await Promise.all([
+    listPublished(PER_PAGE, (page - 1) * PER_PAGE),
+    countPublished(),
+    getContent("blog"),
+  ]);
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <div className="wrap max-w-4xl py-12 lg:py-16">
       <header>
-        <div className="font-mono text-[11.5px] text-accent">◆ StatLabs analysis</div>
-        <h1 className="mt-3 text-[40px] font-extrabold leading-[1] tracking-[-0.04em] sm:text-[56px]">The daily briefing</h1>
-        <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-ink-2">
-          Original, sourced analysis of what happened on the road to artificial superintelligence, published every
-          morning.
-        </p>
+        <div className="font-mono text-[11.5px] text-accent">◆ {c.eyebrow}</div>
+        <h1 className="mt-3 text-[40px] font-extrabold leading-[1] tracking-[-0.04em] sm:text-[56px]">{c.heading}</h1>
+        <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-ink-2">{c.intro}</p>
       </header>
 
       {posts.length === 0 ? (
-        <p className="card mt-10 p-8 text-center text-muted">The first briefing is on its way.</p>
+        <p className="card mt-10 p-8 text-center text-muted">{c.empty}</p>
       ) : (
         <ol className="mt-10 grid gap-4">
           {posts.map((p) => (

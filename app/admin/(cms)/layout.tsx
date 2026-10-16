@@ -14,6 +14,7 @@ export default async function CmsLayout({ children }: { children: React.ReactNod
           <Link href="/admin/analytics" className="hover:text-accent">Analytics</Link>
           <Link href="/admin" className="hover:text-accent">Posts</Link>
           <Link href="/admin/posts/new" className="hover:text-accent">New post</Link>
+          <Link href="/admin/pages" className="hover:text-accent">Pages</Link>
         </nav>
         <form action={logout}>
           <button className="text-sm text-muted hover:text-foreground">Sign out</button>

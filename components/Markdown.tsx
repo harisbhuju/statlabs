@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -9,6 +10,7 @@ export function Markdown({ children }: { children: string }) {
         remarkPlugins={[remarkGfm]}
         components={{
           a: ({ href, children }) => {
+            if (href?.startsWith("/")) return <Link href={href}>{children}</Link>;
             const external = href?.startsWith("http");
             return (
               <a href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>

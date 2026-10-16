@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Feed } from "@/components/home/Feed";
 import { SearchInterestCard, SearchInterestPending } from "@/components/home/SearchInterestCard";
 import { TimeAgo } from "@/components/TimeAgo";
+import { getContent } from "@/lib/content";
 import { buildFeed } from "@/lib/feed";
 import { countPublished, listPublished } from "@/lib/posts";
 import { readCache } from "@/lib/sources/cache";
@@ -12,13 +13,15 @@ import { SITE } from "@/lib/site";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [trends, news, x, mastodon, posts, postCount] = await Promise.all([
+  const [trends, news, x, mastodon, posts, postCount, site, c] = await Promise.all([
     readCache("trends"),
     readCache("news"),
     readCache("x"),
     readCache("mastodon"),
     listPublished(12),
     countPublished(),
+    getContent("site"),
+    getContent("home"),
   ]);
 
   const newsItems = news?.payload.items ?? [];
@@ -36,7 +39,7 @@ export default async function Home() {
     "@type": "WebSite",
     name: SITE.name,
     url: SITE.url,
-    description: SITE.description,
+    description: site.description,
   };
 
   return (
@@ -52,18 +55,15 @@ export default async function Home() {
             </div>
           )}
           <h1 className="mt-4 text-[44px] font-extrabold leading-[0.98] tracking-[-0.045em] [text-wrap:balance] sm:text-[60px] xl:text-[68px]">
-            What the world is saying about <span className="text-accent">superintelligence</span>
+            {c.heading} <span className="text-accent">{c.highlight}</span>
           </h1>
-          <p className="mt-5 max-w-[34em] text-[16.5px] leading-relaxed text-ink-2">
-            News, search interest and the conversation on social media about artificial superintelligence,
-            gathered in one place. Every entry links to its source, and a new sourced briefing is published each morning.
-          </p>
+          <p className="mt-5 max-w-[34em] text-[16.5px] leading-relaxed text-ink-2">{c.intro}</p>
           <div className="mt-7 flex flex-wrap gap-2.5">
             <Link href={latest ? `/blog/${latest.slug}` : "/blog"} className="btn-primary h-10 px-5 text-[14px]">
-              Read today&apos;s briefing
+              {c.primaryButton}
             </Link>
             <Link href="/what-is-superintelligence" className="btn h-10 px-5 text-[14px]">
-              What is superintelligence?
+              {c.secondaryButton}
             </Link>
           </div>
           <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3">

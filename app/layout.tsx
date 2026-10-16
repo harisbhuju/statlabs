@@ -3,26 +3,30 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { LivePill } from "@/components/LivePill";
 import { Tracker } from "@/components/Tracker";
+import { getContent } from "@/lib/content";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: { default: SITE.title, template: `%s | ${SITE.name}` },
-  description: SITE.description,
-  keywords: ["superintelligence", "artificial superintelligence", "ASI", "AGI", "AI safety", "AI news"],
-  alternates: {
-    canonical: "/",
-    types: { "application/rss+xml": `${SITE.url}/rss.xml` },
-  },
-  openGraph: { type: "website", siteName: SITE.name, title: SITE.title, description: SITE.description, url: SITE.url },
-  twitter: { card: "summary_large_image", title: SITE.title, description: SITE.description },
-  // Google Search Console ownership check.
-  verification: { google: "WaCKPZ0Hs06ubz6Pnz2QahhnMhOcCu3AqBDz2NTQi40" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { title, description } = await getContent("site");
+  return {
+    metadataBase: new URL(SITE.url),
+    title: { default: title, template: `%s | ${SITE.name}` },
+    description,
+    keywords: ["superintelligence", "artificial superintelligence", "ASI", "AGI", "AI safety", "AI news"],
+    alternates: {
+      canonical: "/",
+      types: { "application/rss+xml": `${SITE.url}/rss.xml` },
+    },
+    openGraph: { type: "website", siteName: SITE.name, title, description, url: SITE.url },
+    twitter: { card: "summary_large_image", title, description },
+    // Google Search Console ownership check.
+    verification: { google: "WaCKPZ0Hs06ubz6Pnz2QahhnMhOcCu3AqBDz2NTQi40" },
+  };
+}
 
 // The site is light-only, even when the visitor's system is set to dark mode.
 export const viewport: Viewport = { colorScheme: "light", themeColor: "#f5f5f3" };
@@ -38,17 +42,18 @@ function BrandMark() {
   );
 }
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": `${SITE.url}/#organization`,
-  name: SITE.name,
-  url: SITE.url,
-  logo: `${SITE.url}/opengraph-image`,
-  description: SITE.description,
-};
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const site = await getContent("site");
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${SITE.url}/#organization`,
+    name: SITE.name,
+    url: SITE.url,
+    logo: `${SITE.url}/opengraph-image`,
+    description: site.description,
+  };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
@@ -81,10 +86,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <BrandMark />
                 StatLabs
               </Link>
-              <p className="mt-3 max-w-sm text-[13px] text-muted">
-                An independent tracker of news, search interest and public conversation about artificial
-                superintelligence.
-              </p>
+              <p className="mt-3 max-w-sm text-[13px] text-muted">{site.footerBlurb}</p>
             </div>
             <FooterCol title="Browse" links={[["/#feed", "Feed"], ["/blog", "Analysis"], ["/#search-interest", "Search trends"]]} />
             <FooterCol
@@ -99,7 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
           <div className="wrap flex flex-wrap justify-between gap-3 border-t border-border py-4 font-mono text-[11.5px] text-muted">
             <span>© {SITE.name} · statlabs.si</span>
-            <span>No cookies. Visits are counted anonymously.</span>
+            <span>{site.footerNote}</span>
           </div>
         </footer>
         <Tracker />
