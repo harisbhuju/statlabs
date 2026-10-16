@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   },
   openGraph: { type: "website", siteName: SITE.name, title: SITE.title, description: SITE.description, url: SITE.url },
   twitter: { card: "summary_large_image", title: SITE.title, description: SITE.description },
+  // Google Search Console ownership check.
+  verification: { google: "WaCKPZ0Hs06ubz6Pnz2QahhnMhOcCu3AqBDz2NTQi40" },
 };
 
 // The site is light-only, even when the visitor's system is set to dark mode.
