@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "What Is Superintelligence? A Plain-English Guide",
+  title: "What Is Super Intelligence? A Plain-English Guide",
   description:
-    "What superintelligence means, how it differs from AI and AGI, why people disagree about it, and why the word is suddenly everywhere.",
+    "What superintelligence (super intelligence) means, how it differs from AI and AGI, why experts disagree, and why the word is suddenly everywhere.",
   alternates: { canonical: "/what-is-superintelligence" },
 };
 

@@ -1,8 +1,9 @@
 export const SITE = {
   name: "StatLabs",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://statlabs.si",
-  title: "StatLabs — Live Superintelligence Stats, News & Trends",
+  // People search both "super intelligence" and "superintelligence"; titles and descriptions use both.
+  title: "StatLabs: Super Intelligence News, Trends & Analysis",
   description:
-    "Live dashboard tracking superintelligence: Google search interest, breaking news, social media conversation, and daily analysis on the road to artificial superintelligence (ASI).",
+    "Live super intelligence tracker: Google search trends, news and social posts about AI superintelligence, plus a sourced daily briefing.",
   topic: "superintelligence",
 };

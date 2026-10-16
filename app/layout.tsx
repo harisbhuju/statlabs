@@ -36,10 +36,21 @@ function BrandMark() {
   );
 }
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE.url}/#organization`,
+  name: SITE.name,
+  url: SITE.url,
+  logo: `${SITE.url}/opengraph-image`,
+  description: SITE.description,
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
           <div className="wrap flex h-14 items-center gap-7">
             <Link href="/" className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight">
@@ -74,7 +85,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </p>
             </div>
             <FooterCol title="Browse" links={[["/#feed", "Feed"], ["/blog", "Analysis"], ["/#search-interest", "Search trends"]]} />
-            <FooterCol title="Learn" links={[["/what-is-superintelligence", "What is superintelligence?"], ["/blog", "Daily briefings"]]} />
+            <FooterCol
+              title="Learn"
+              links={[
+                ["/what-is-superintelligence", "What is super intelligence?"],
+                ["/blog", "Daily briefings"],
+                ["/about", "About & how we work"],
+              ]}
+            />
             <FooterCol title="Follow" links={[["/rss.xml", "RSS feed"], ["/privacy", "Privacy"]]} />
           </div>
           <div className="wrap flex flex-wrap justify-between gap-3 border-t border-border py-4 font-mono text-[11.5px] text-muted">

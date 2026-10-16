@@ -11,8 +11,10 @@
   --border-strong: #d4d1ca;
   --foreground: #111110;
   --ink-2: #4b4a46;
-  --muted: #8a8780;
+  --muted: #6b6862;
   --accent: #ee4b2b;
+  /* Darker red for text, so small red labels meet the 4.5:1 contrast minimum. */
+  --accent-ink: #c4361a;
   --accent-soft: #fdebe6;
   --live: #1e9152;
   --up-bg: #e7f5ec;
@@ -120,6 +122,14 @@ body {
 }
 .prose-statlabs :where(a:hover) {
   color: var(--accent);
+}
+
+/* Unlayered, so it wins over Tailwind's utility: red text uses the darker, accessible red. */
+.text-accent {
+  color: var(--accent-ink);
+}
+.text-live {
+  color: var(--up-fg);
 }
 
 .live-dot {

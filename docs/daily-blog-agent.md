@@ -26,6 +26,9 @@ artificial superintelligence. Readers are curious non-experts. Write and publish
    - Separate what happened (facts, with links to sources) from analysis.
    - Use the phrase people search for, such as "super intelligence" or "superintelligence", naturally
      in the title, the first paragraph and one heading.
+   - Internal links: link the first mention of superintelligence to
+     https://statlabs.si/what-is-superintelligence, and if an earlier StatLabs article from step 1 is related,
+     link it once (https://statlabs.si/blog/<slug>).
    - End with a short "## What to watch next" section.
    - Title at most 70 characters. Excerpt (shown in Google results) at most 155 characters.
    - 3–6 lowercase tags.

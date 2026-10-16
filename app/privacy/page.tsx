@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Privacy", alternates: { canonical: "/privacy" } };
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "How StatLabs counts visits without cookies: what is stored, what is not, and why page reloads are not counted.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function Privacy() {
   return (

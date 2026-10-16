@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/Markdown";
-import { getPublishedBySlug } from "@/lib/posts";
+import { getPublishedBySlug, listPublished } from "@/lib/posts";
 import { SITE } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -40,20 +40,40 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
   const post = await getPublishedBySlug((await params).slug);
   if (!post) notFound();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    datePublished: post.publishedAt?.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: { "@type": "Organization", name: post.author },
-    publisher: { "@type": "Organization", name: SITE.name, url: SITE.url },
-    mainEntityOfPage: `${SITE.url}/blog/${post.slug}`,
-    keywords: post.tags.join(", "),
-    ...(post.coverUrl ? { image: post.coverUrl } : {}),
-  };
+  const url = `${SITE.url}/blog/${post.slug}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.excerpt,
+      datePublished: post.publishedAt?.toISOString(),
+      dateModified: post.updatedAt.toISOString(),
+      author: { "@type": "Organization", name: post.author, url: `${SITE.url}/about` },
+      publisher: {
+        "@type": "Organization",
+        "@id": `${SITE.url}/#organization`,
+        name: SITE.name,
+        url: SITE.url,
+        logo: { "@type": "ImageObject", url: `${SITE.url}/opengraph-image` },
+      },
+      mainEntityOfPage: url,
+      image: post.coverUrl ?? `${url}/opengraph-image`,
+      keywords: post.tags.join(", "),
+      citation: post.sources.map((s) => s.url),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE.url },
+        { "@type": "ListItem", position: 2, name: "Analysis", item: `${SITE.url}/blog` },
+        { "@type": "ListItem", position: 3, name: post.title, item: url },
+      ],
+    },
+  ];
 
+  const related = (await listPublished(4)).filter((p) => p.id !== post.id).slice(0, 3);
   const minutes = Math.max(1, Math.round(post.content.split(/\s+/).length / 230));
 
   return (
@@ -62,9 +82,11 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      <Link href="/blog" className="font-mono text-[11.5px] text-accent hover:underline">
-        ◆ StatLabs analysis
-      </Link>
+      <nav aria-label="Breadcrumb" className="font-mono text-[11.5px] text-muted">
+        <Link href="/" className="hover:text-foreground">Home</Link>
+        <span aria-hidden> / </span>
+        <Link href="/blog" className="text-accent hover:underline">◆ StatLabs analysis</Link>
+      </nav>
       <h1 className="mt-4 text-[34px] font-extrabold leading-[1.05] tracking-[-0.035em] [text-wrap:balance] sm:text-[48px]">
         {post.title}
       </h1>
@@ -75,7 +97,12 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
           SL
         </span>
         <div className="leading-tight">
-          <div className="text-[13.5px] font-semibold">{post.author}</div>
+          <div className="text-[13.5px] font-semibold">
+            {post.author}{" "}
+            <Link href="/about" className="font-normal text-muted underline decoration-border-strong underline-offset-2 hover:text-foreground">
+              How we write
+            </Link>
+          </div>
           <div className="font-mono text-[11.5px] text-muted">
             {post.publishedAt && <time dateTime={post.publishedAt.toISOString()}>{dateFmt.format(post.publishedAt)}</time>}
             {" · "}
@@ -120,8 +147,27 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
         </div>
       )}
 
-      <div className="mt-12 flex flex-wrap gap-2.5 border-t border-border pt-6">
-        <Link href="/blog" className="btn">← More analysis</Link>
+      {related.length > 0 && (
+        <section className="mt-12" aria-labelledby="more-analysis">
+          <h2 id="more-analysis" className="text-[18px] font-bold tracking-tight">More analysis</h2>
+          <ul className="mt-3 grid gap-3">
+            {related.map((p) => (
+              <li key={p.id}>
+                <Link href={`/blog/${p.slug}`} className="card group block p-4 transition-colors hover:border-border-strong">
+                  {p.publishedAt && (
+                    <div className="font-mono text-[11.5px] text-muted">{dateFmt.format(p.publishedAt)}</div>
+                  )}
+                  <div className="mt-1 text-[16px] font-semibold leading-snug group-hover:text-accent">{p.title}</div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="mt-10 flex flex-wrap gap-2.5 border-t border-border pt-6">
+        <Link href="/blog" className="btn">← All analysis</Link>
+        <Link href="/what-is-superintelligence" className="btn">What is super intelligence?</Link>
         <Link href="/#feed" className="btn">Today&apos;s news feed</Link>
       </div>
     </article>
