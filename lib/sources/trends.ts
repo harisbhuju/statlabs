@@ -1,4 +1,4 @@
-import { RELEVANT_QUERY } from "./trendsSummary";
+import { isUsefulQuery } from "./trendsSummary";
 import type { TrendPoint, TrendsPayload } from "./types";
 
 /** The term the search card is about. */
@@ -87,7 +87,7 @@ const serpapi: TrendsProvider = {
         ? { terms: [TREND_MAIN, TREND_REFERENCE], points: comparisonPoints }
         : undefined,
       rising: (related.related_queries?.rising ?? [])
-        .filter((r) => RELEVANT_QUERY.test(r.query))
+        .filter((r) => isUsefulQuery(r.query))
         .map(({ query, value }) => ({ query, value }))
         .slice(0, 8),
     };

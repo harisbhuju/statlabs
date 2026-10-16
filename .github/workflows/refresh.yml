@@ -1,0 +1,28 @@
+# Keeps statlabs.si data fresh even when nobody is visiting.
+# Calls the site's refresh endpoint every 30 minutes. Each source keeps its own limit
+# (news and Mastodon: 30 min, Google Trends: once a day), so this doesn't use extra SerpApi searches.
+# Needs the repository secret CRON_SECRET (same value as in Vercel).
+name: Refresh site data
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call refresh endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Add the CRON_SECRET repository secret (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          curl -fsS --max-time 60 -H "Authorization: Bearer $CRON_SECRET" https://statlabs.si/api/cron/refresh
+          echo

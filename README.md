@@ -2,20 +2,28 @@
 
 Live superintelligence dashboard + blog CMS. Next.js 16 (App Router) on Vercel with Neon Postgres.
 
-- **Bento dashboard** (`app/page.tsx`): Google Trends interest & rising searches, latest news
-  (Google News + Hacker News), top posts on X, live/total visitors, latest blog posts.
-- **Visitor tracking** (`app/api/track`, `lib/visitors.ts`): cookieless, daily-rotating hashed IDs;
-  "online now" = heartbeat in the last 60s.
+- **Homepage** (`app/page.tsx`): Google search interest for "super intelligence" vs "AI", a feed of news
+  (Google News + Hacker News), Mastodon posts and StatLabs analysis, live readers.
+- **Visitor tracking** (`app/api/track`, `lib/visitors.ts`): cookieless, daily-rotating hashed IDs; page
+  reloads aren't counted. Detailed analytics at `/admin/analytics`.
 - **CMS** at `/admin` (single admin login) and a JSON API at `/api/posts` (Bearer `CMS_API_KEY`).
 - **SEO**: sitemap, robots, RSS (`/rss.xml`), canonical URLs, `BlogPosting` JSON-LD, OG image.
 - **Daily blog**: a scheduled Claude agent publishes via the API — prompt in `docs/daily-blog-agent.md`.
 
-## How data stays fresh
+## Sync schedule
 
-Homepage tiles only read from the `source_cache` table. Sources refresh lazily: every visitor poll of
-`/api/stats/visitors` refreshes stale sources in the background (news 30 min, X 1 h, trends 6 h), with a
-DB claim so only one request hits the paid APIs. A daily Vercel cron (`vercel.json`) hits
-`/api/cron/refresh` as a backstop. Force a refresh:
+| What | How often | Triggered by |
+|---|---|---|
+| News (Google News, Hacker News) | every 30 min | GitHub Actions (`.github/workflows/refresh.yml`) and site visitors |
+| Mastodon posts | every 30 min | same |
+| Google Trends (3 SerpApi searches) | once a day, or right away when the stored data is outdated | same |
+| Backup refresh | daily 06:00 UTC | Vercel cron (`vercel.json`) |
+| Homepage | at most every 5 min, or right after a source updates | Next.js revalidation |
+| Daily blog post | 07:00 Sydney time | Claude scheduled agent |
+
+Homepage tiles only read from the `source_cache` table. `/api/cron/refresh` and visitor polls of
+`/api/stats/visitors` refresh whichever sources are past their limit, with a DB claim so only one request
+hits the paid APIs. The GitHub workflow needs the repository secret `CRON_SECRET`. Force a refresh:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" "https://statlabs.si/api/cron/refresh?force=1"

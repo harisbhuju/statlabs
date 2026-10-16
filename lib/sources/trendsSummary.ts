@@ -18,6 +18,13 @@ export type TrendsSummary = {
 /** Google's "rising searches" include unrelated breakouts; keep only queries about the subject. */
 export const RELEVANT_QUERY =
   /intellig|\bai\b|\bagi\b|\basi\b|artificial|openai|anthropic|deepmind|alignment|ai safety|chatgpt|gpt|robot/i;
+/** Pasted homework/quiz questions show up as "rising" searches; they aren't real topics. */
+const QUIZ_TEXT = /\bquestion\s*\d|select\b|which of the following|\?.+\?/i;
+
+/** A rising search worth showing: on topic, short, and not quiz text. */
+export function isUsefulQuery(q: string) {
+  return RELEVANT_QUERY.test(q) && q.length <= 60 && q.trim().split(/\s+/).length <= 8 && !QUIZ_TEXT.test(q);
+}
 
 const DAY = 86400_000;
 /** Below this average score (out of 100) a term has too few searches for a percentage to mean anything. */
@@ -113,6 +120,6 @@ export function summarizeTrends(data: TrendsPayload): TrendsSummary | null {
     series,
     peakIndex,
     unit: w.unit,
-    rising: data.rising.filter((r) => RELEVANT_QUERY.test(r.query)).map(({ query, value }) => ({ query, value })),
+    rising: data.rising.filter((r) => isUsefulQuery(r.query)).map(({ query, value }) => ({ query, value })),
   };
 }
