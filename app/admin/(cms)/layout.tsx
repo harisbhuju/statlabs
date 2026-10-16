@@ -11,6 +11,7 @@ export default async function CmsLayout({ children }: { children: React.ReactNod
     <div>
       <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
         <nav className="flex gap-4 text-sm">
+          <Link href="/admin/analytics" className="hover:text-accent">Analytics</Link>
           <Link href="/admin" className="hover:text-accent">Posts</Link>
           <Link href="/admin/posts/new" className="hover:text-accent">New post</Link>
         </nav>

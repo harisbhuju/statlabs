@@ -44,9 +44,22 @@ export const pageviews = pgTable(
     visitorHash: varchar("visitor_hash", { length: 64 }).notNull(),
     referrer: text("referrer"),
     country: varchar("country", { length: 8 }),
+    region: varchar("region", { length: 64 }),
+    city: text("city"),
+    device: varchar("device", { length: 16 }),
+    browser: varchar("browser", { length: 32 }),
+    os: varchar("os", { length: 32 }),
+    utmSource: varchar("utm_source", { length: 100 }),
+    utmMedium: varchar("utm_medium", { length: 100 }),
+    utmCampaign: varchar("utm_campaign", { length: 100 }),
+    /** Last heartbeat while this page was open; used for visit duration. */
+    engagedUntil: timestamp("engaged_until", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("pageviews_created_idx").on(t.createdAt)],
+  (t) => [
+    index("pageviews_created_idx").on(t.createdAt),
+    index("pageviews_visitor_created_idx").on(t.visitorHash, t.createdAt),
+  ],
 );
 
 export const presence = pgTable(

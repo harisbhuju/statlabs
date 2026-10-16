@@ -11,9 +11,20 @@ export default function Privacy() {
         hash of your IP address, browser user-agent and the current date. The identifier changes every day and
         your IP address is never stored, so visits cannot be linked across days or back to you.
       </p>
+      <p>For each page you open we store:</p>
+      <ul>
+        <li>the page address and the time;</li>
+        <li>the domain of the website that linked you here, and any campaign tag in the link (such as utm_source);</li>
+        <li>
+          your approximate location (country, region and city), which our hosting provider derives from your IP
+          address — the IP address itself is not stored;
+        </li>
+        <li>your device type (mobile, tablet or desktop), browser name and operating system;</li>
+        <li>while the page is open, a heartbeat every 30 seconds so we can measure how long visits last.</li>
+      </ul>
       <p>
-        We store the page path, the referring website&apos;s domain and your country (derived from your IP by our
-        hosting provider) to show aggregate visitor statistics. We do not use advertising or third-party tracking.
+        Reloading a page is not counted as another visit. This information is only used for aggregate statistics.
+        We do not use advertising or third-party tracking, and we do not sell or share the data.
       </p>
     </div>
   );
