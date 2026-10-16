@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import Link from "next/link";
 import { Today } from "@/components/Today";
@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   openGraph: { type: "website", siteName: SITE.name, title: SITE.title, description: SITE.description, url: SITE.url },
   twitter: { card: "summary_large_image", title: SITE.title, description: SITE.description },
 };
+
+// The site is light-only, even when the visitor's system is set to dark mode.
+export const viewport: Viewport = { colorScheme: "light", themeColor: "#f4f2ec" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
