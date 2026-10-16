@@ -21,13 +21,13 @@ export default async function AdminPosts() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Posts</h1>
+        <h1 className="font-display text-4xl">Posts</h1>
         <Link href="/admin/posts/new" className="btn-primary">New post</Link>
       </div>
       {rows.length === 0 ? (
         <p className="text-muted">No posts yet.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto border border-border">
           <table className="w-full text-sm">
             <thead className="bg-surface text-left text-muted">
               <tr>

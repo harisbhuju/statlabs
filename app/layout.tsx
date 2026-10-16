@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import Link from "next/link";
+import { Today } from "@/components/Today";
 import { Tracker } from "@/components/Tracker";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const displaySerif = Instrument_Serif({
+  variable: "--font-display-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -23,29 +30,46 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <header className="mx-auto w-full max-w-7xl px-4 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-accent/15 font-mono text-sm text-accent">
-              S∞
-            </span>
-            StatLabs
-          </Link>
-          <nav className="flex items-center gap-5 text-sm text-muted">
-            <Link href="/" className="hover:text-foreground">Dashboard</Link>
-            <Link href="/blog" className="hover:text-foreground">Blog</Link>
-          </nav>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col">
+        <header className="mx-auto w-full max-w-[1280px] px-4 sm:px-6">
+          <div className="flex items-center justify-between border-b border-border py-2">
+            <Today className="eyebrow" />
+            <span className="eyebrow hidden sm:inline">Independent tracker of the road to ASI</span>
+          </div>
+          <div className="flex items-end justify-between border-b-2 border-rule pt-5 pb-3">
+            <Link href="/" className="font-display text-[34px] leading-none tracking-tight sm:text-[40px]">
+              StatLabs<span className="text-accent">.</span>
+            </Link>
+            <nav className="flex items-center gap-4 pb-1 text-[13px] text-ink-2 sm:gap-6">
+              <Link href="/" className="hover:text-foreground">Dashboard</Link>
+              <Link href="/blog" className="hover:text-foreground">Analysis</Link>
+              <Link href="/rss.xml" className="hidden hover:text-foreground sm:inline">RSS</Link>
+            </nav>
+          </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16">{children}</main>
-        <footer className="border-t border-border">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted">
-            <span>© {new Date().getFullYear()} StatLabs — tracking the road to superintelligence.</span>
-            <span className="flex gap-4">
+
+        <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-8 pb-20 sm:px-6">{children}</main>
+
+        <footer className="mx-auto w-full max-w-[1280px] px-4 sm:px-6">
+          <div className="grid gap-6 border-t-2 border-rule py-8 sm:grid-cols-[1fr_auto]">
+            <div>
+              <div className="font-display text-2xl">StatLabs<span className="text-accent">.</span></div>
+              <p className="mt-2 max-w-md text-sm text-muted">
+                Search interest, news and public conversation about artificial superintelligence — measured
+                continuously, analysed daily.
+              </p>
+            </div>
+            <nav className="flex gap-6 self-end text-[13px] text-ink-2">
+              <Link href="/blog" className="hover:text-foreground">Analysis</Link>
               <Link href="/rss.xml" className="hover:text-foreground">RSS</Link>
               <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-            </span>
+            </nav>
           </div>
+          <div className="eyebrow border-t border-border py-4">© StatLabs · statlabs.si</div>
         </footer>
         <Tracker />
       </body>

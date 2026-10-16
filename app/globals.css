@@ -1,17 +1,57 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ---- Tokens: warm paper (light) / ink (dark). One accent, hairline rules, no shadows. ---- */
 :root {
-  --background: #07080b;
-  --surface: #0e1016;
-  --surface-2: #151822;
-  --border: #1e2230;
-  --foreground: #e8eaf0;
-  --muted: #8a90a2;
-  --accent: #8b7bff;
-  --accent-2: #2dd4bf;
-  --accent-3: #f59e0b;
-  --live: #22c55e;
+  color-scheme: light;
+  --background: #f4f2ec;
+  --surface: #fbfaf7;
+  --surface-2: #efece4;
+  --border: #dcd8cd;
+  --rule: #141413;
+  --foreground: #141413;
+  --ink-2: #45443f;
+  --muted: #7d7a71;
+  --accent: #d9442b;
+  --live: #1f8a4c;
+  --series-1: #d9442b;
+  --series-2: #2a5bd7;
+  --series-3: #1a9a6c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #0f0f0e;
+    --surface: #161614;
+    --surface-2: #1d1d1b;
+    --border: #2b2a27;
+    --rule: #edebe6;
+    --foreground: #edebe6;
+    --ink-2: #c4c1b8;
+    --muted: #8c8981;
+    --accent: #f05a3e;
+    --live: #34b26a;
+    --series-1: #f05a3e;
+    --series-2: #5b8cff;
+    --series-3: #21a877;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0f0f0e;
+  --surface: #161614;
+  --surface-2: #1d1d1b;
+  --border: #2b2a27;
+  --rule: #edebe6;
+  --foreground: #edebe6;
+  --ink-2: #c4c1b8;
+  --muted: #8c8981;
+  --accent: #f05a3e;
+  --live: #34b26a;
+  --series-1: #f05a3e;
+  --series-2: #5b8cff;
+  --series-3: #21a877;
 }
 
 @theme inline {
@@ -19,51 +59,107 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-rule: var(--rule);
   --color-foreground: var(--foreground);
+  --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
-  --color-accent-3: var(--accent-3);
   --color-live: var(--live);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-html {
-  color-scheme: dark;
+  --font-display: var(--font-display-serif);
 }
 
 body {
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgb(139 123 255 / 0.12), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgb(45 212 191 / 0.08), transparent 60%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
 }
 
-@keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(34 197 94 / 0.6); }
-  50% { box-shadow: 0 0 0 6px rgb(34 197 94 / 0); }
-}
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  background: var(--live);
-  animation: pulse-dot 2s infinite;
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
 
 @layer components {
+  /* Small uppercase label used for panel headers and metadata. */
+  .eyebrow {
+    @apply font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted;
+  }
   .input {
-    @apply w-full rounded-lg border border-border bg-surface px-3 py-2 outline-none placeholder:text-muted/60 focus:border-accent/60;
+    @apply w-full rounded-[3px] border border-border bg-surface px-3 py-2 text-foreground outline-none placeholder:text-muted/70 focus:border-foreground;
   }
   .btn-primary {
-    @apply inline-block rounded-lg bg-accent px-3 py-2 text-center text-sm font-medium text-white hover:brightness-110 disabled:opacity-50;
+    @apply inline-block rounded-[3px] bg-foreground px-4 py-2 text-center text-sm font-medium text-background transition-opacity hover:opacity-85 disabled:opacity-40;
   }
+  .btn-secondary {
+    @apply inline-block rounded-[3px] border border-border px-4 py-2 text-center text-sm text-foreground transition-colors hover:border-foreground disabled:opacity-40;
+  }
+  .link-underline {
+    @apply underline decoration-border decoration-1 underline-offset-4 transition-colors hover:decoration-foreground;
+  }
+}
+
+/* Typography plugin mapped onto site tokens (works in both themes, no prose-invert). */
+.prose-statlabs {
+  --tw-prose-body: var(--ink-2);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--ink-2);
+  --tw-prose-links: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--accent);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-captions: var(--muted);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-th-borders: var(--rule);
+  --tw-prose-td-borders: var(--border);
+}
+.prose-statlabs :where(h1, h2, h3) {
+  font-family: var(--font-display-serif), serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.prose-statlabs :where(h2) {
+  font-size: 2rem;
+  line-height: 1.1;
+  margin-top: 2.25em;
+}
+.prose-statlabs :where(h3) {
+  font-size: 1.5rem;
+}
+.prose-statlabs :where(a) {
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.prose-statlabs :where(a:hover) {
+  color: var(--accent);
+}
+.drop-cap > p:first-child::first-letter {
+  float: left;
+  font-family: var(--font-display-serif), serif;
+  font-size: 4.1em;
+  line-height: 0.82;
+  padding: 0.08em 0.1em 0 0;
+  color: var(--foreground);
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--live);
 }
 
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
 }

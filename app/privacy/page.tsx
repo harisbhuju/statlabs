@@ -4,7 +4,7 @@ export const metadata: Metadata = { title: "Privacy", alternates: { canonical: "
 
 export default function Privacy() {
   return (
-    <div className="prose prose-invert mx-auto max-w-3xl">
+    <div className="prose prose-statlabs mx-auto max-w-[680px] text-[17px] leading-[1.75]">
       <h1>Privacy</h1>
       <p>
         StatLabs counts visits without cookies. For each request we compute an anonymous identifier from a one-way

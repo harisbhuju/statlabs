@@ -111,7 +111,7 @@ export function PostEditor({ post = EMPTY }: { post?: EditablePost }) {
             className="input font-mono text-sm"
           />
         ) : (
-          <div className="min-h-96 rounded-xl border border-border bg-surface p-6">
+          <div className="min-h-96 border border-border bg-surface p-6">
             <Markdown>{form.content || "_Nothing to preview yet._"}</Markdown>
           </div>
         )}
@@ -129,7 +129,7 @@ export function PostEditor({ post = EMPTY }: { post?: EditablePost }) {
           <button
             disabled={saving || !form.title}
             onClick={() => save("draft")}
-            className="w-full rounded-lg border border-border px-3 py-2 hover:bg-surface-2 disabled:opacity-50"
+            className="btn-secondary w-full"
           >
             {form.status === "published" ? "Unpublish to draft" : "Save draft"}
           </button>

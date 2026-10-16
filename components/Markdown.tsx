@@ -2,9 +2,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 /** Renders post markdown. Raw HTML is not rendered (react-markdown default), so content is XSS-safe. */
-export function Markdown({ children }: { children: string }) {
+export function Markdown({ children, dropCap = false }: { children: string; dropCap?: boolean }) {
   return (
-    <div className="prose prose-invert max-w-none prose-headings:tracking-tight prose-a:text-accent prose-img:rounded-xl">
+    <div className={`prose prose-statlabs max-w-none text-[17px] leading-[1.75] ${dropCap ? "drop-cap" : ""}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

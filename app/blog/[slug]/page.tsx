@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
   };
 }
 
-const dateFmt = new Intl.DateTimeFormat("en", { dateStyle: "long" });
+const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
   const post = await getPublishedBySlug((await params).slug);
@@ -54,57 +54,73 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
     ...(post.coverUrl ? { image: post.coverUrl } : {}),
   };
 
+  const minutes = Math.max(1, Math.round(post.content.split(/\s+/).length / 230));
+
   return (
-    <article className="mx-auto max-w-3xl">
+    <article className="mx-auto max-w-[1100px]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }}
       />
-      <Link href="/blog" className="text-sm text-muted hover:text-foreground">
-        ← All posts
-      </Link>
-      <header className="mt-6 mb-8">
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight md:text-4xl">{post.title}</h1>
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 text-sm text-muted">
-          <span>{post.author}</span>
-          {post.publishedAt && (
-            <>
-              ·<time dateTime={post.publishedAt.toISOString()}>{dateFmt.format(post.publishedAt)}</time>
-            </>
-          )}
-        </div>
-        {post.coverUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote hosts
-          <img src={post.coverUrl} alt="" className="mt-6 w-full rounded-2xl border border-border" />
+      <header className="mx-auto max-w-4xl border-b border-rule pb-8 text-center">
+        <Link href="/blog" className="eyebrow hover:!text-foreground">
+          <span className="mr-3 text-accent">§</span>Analysis
+        </Link>
+        <h1 className="mt-6 font-display text-[42px] leading-[1.0] tracking-[-0.01em] sm:text-[64px]">{post.title}</h1>
+        {post.excerpt && (
+          <p className="mx-auto mt-6 max-w-2xl font-display text-[22px] italic leading-snug text-ink-2">
+            {post.excerpt}
+          </p>
         )}
+        <div className="eyebrow mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <span className="!text-foreground">By {post.author}</span>
+          <span aria-hidden>/</span>
+          {post.publishedAt && (
+            <time dateTime={post.publishedAt.toISOString()}>{dateFmt.format(post.publishedAt)}</time>
+          )}
+          <span aria-hidden>/</span>
+          <span>{minutes} min read</span>
+        </div>
       </header>
 
-      <Markdown>{post.content}</Markdown>
+      {post.coverUrl && (
+        // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote hosts
+        <img src={post.coverUrl} alt="" className="mt-10 w-full border border-border" />
+      )}
 
-      {post.sources.length > 0 && (
-        <section className="mt-12 rounded-2xl border border-border bg-surface p-5">
-          <h2 className="text-sm font-medium text-muted">Sources</h2>
-          <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm">
-            {post.sources.map((s) => (
-              <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
-                  {s.title}
-                </a>
-              </li>
+      <div className="mx-auto mt-12 max-w-[680px]">
+        <Markdown dropCap>{post.content}</Markdown>
+
+        {post.sources.length > 0 && (
+          <section className="mt-16 border-t border-rule pt-6">
+            <h2 className="eyebrow !text-foreground">Sources</h2>
+            <ol className="mt-4">
+              {post.sources.map((s, i) => (
+                <li key={s.url} className="grid grid-cols-[2rem_1fr] border-b border-border py-2.5 text-[14px] last:border-0">
+                  <span className="num font-mono text-[11px] text-muted pt-0.5">{String(i + 1).padStart(2, "0")}</span>
+                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="link-underline text-ink-2 hover:text-foreground">
+                    {s.title}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {post.tags.length > 0 && (
+          <div className="mt-8 flex flex-wrap gap-2">
+            {post.tags.map((t) => (
+              <span key={t} className="border border-border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-wider text-muted">
+                {t}
+              </span>
             ))}
-          </ol>
-        </section>
-      )}
+          </div>
+        )}
 
-      {post.tags.length > 0 && (
-        <div className="mt-8 flex flex-wrap gap-1.5">
-          {post.tags.map((t) => (
-            <span key={t} className="rounded-full bg-surface-2 px-2.5 py-1 text-xs text-muted">
-              {t}
-            </span>
-          ))}
+        <div className="mt-16 border-t-2 border-rule pt-6">
+          <Link href="/blog" className="text-[13px] link-underline">← More analysis</Link>
         </div>
-      )}
+      </div>
     </article>
   );
 }
