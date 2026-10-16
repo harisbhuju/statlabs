@@ -1,22 +1,22 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ---- Tokens: warm paper, light mode only. One accent, hairline rules, no shadows. ---- */
+/* ---- Tokens: light only. Neutral page, white cards, one coral accent. ---- */
 :root {
   color-scheme: light;
-  --background: #f4f2ec;
-  --surface: #fbfaf7;
-  --surface-2: #efece4;
-  --border: #dcd8cd;
-  --rule: #141413;
-  --foreground: #141413;
-  --ink-2: #45443f;
-  --muted: #7d7a71;
-  --accent: #d9442b;
-  --live: #1f8a4c;
-  --series-1: #d9442b;
-  --series-2: #2a5bd7;
-  --series-3: #1a9a6c;
+  --background: #f5f5f3;
+  --surface: #ffffff;
+  --surface-2: #efeee9;
+  --border: #e6e4df;
+  --border-strong: #d4d1ca;
+  --foreground: #111110;
+  --ink-2: #4b4a46;
+  --muted: #8a8780;
+  --accent: #ee4b2b;
+  --accent-soft: #fdebe6;
+  --live: #1e9152;
+  --up-bg: #e7f5ec;
+  --up-fg: #17733f;
 }
 
 @theme inline {
@@ -24,22 +24,23 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
-  --color-rule: var(--rule);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-live: var(--live);
+  --color-up-bg: var(--up-bg);
+  --color-up-fg: var(--up-fg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-display-serif);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11";
 }
 
 ::selection {
@@ -47,26 +48,46 @@ body {
   color: #fff;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 @layer components {
-  /* Small uppercase label used for panel headers and metadata. */
-  .eyebrow {
-    @apply font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted;
+  .wrap {
+    @apply mx-auto w-full max-w-[1320px] px-4 sm:px-6;
+  }
+  .card {
+    @apply rounded-xl border border-border bg-surface;
   }
   .input {
-    @apply w-full rounded-[3px] border border-border bg-surface px-3 py-2 text-foreground outline-none placeholder:text-muted/70 focus:border-foreground;
+    @apply w-full rounded-lg border border-border bg-surface px-3 py-2 text-foreground outline-none placeholder:text-muted/70 focus:border-foreground;
   }
-  .btn-primary {
-    @apply inline-block rounded-[3px] bg-foreground px-4 py-2 text-center text-sm font-medium text-background transition-opacity hover:opacity-85 disabled:opacity-40;
+  .btn {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border-strong bg-surface px-4 text-[13.5px] font-medium transition-colors hover:border-foreground disabled:opacity-40;
   }
   .btn-secondary {
-    @apply inline-block rounded-[3px] border border-border px-4 py-2 text-center text-sm text-foreground transition-colors hover:border-foreground disabled:opacity-40;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border-strong bg-surface px-4 text-[13.5px] font-medium transition-colors hover:border-foreground disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-foreground bg-foreground px-4 text-[13.5px] font-medium text-white transition-colors hover:bg-[#2a2a28] disabled:opacity-40;
+  }
+  .pill {
+    @apply inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 text-[13px] text-ink-2 transition-colors hover:border-border-strong;
+  }
+  .pill[aria-pressed="true"] {
+    @apply border-foreground text-foreground;
+  }
+  .tag-muted {
+    @apply rounded-full border border-dashed border-border-strong px-2 py-px font-mono text-[10.5px] text-muted;
   }
   .link-underline {
-    @apply underline decoration-border decoration-1 underline-offset-4 transition-colors hover:decoration-foreground;
+    @apply underline decoration-border-strong underline-offset-4 transition-colors hover:decoration-foreground;
   }
 }
 
-/* Typography plugin mapped onto site tokens (works in both themes, no prose-invert). */
+/* Typography plugin mapped onto site tokens. */
 .prose-statlabs {
   --tw-prose-body: var(--ink-2);
   --tw-prose-headings: var(--foreground);
@@ -80,51 +101,42 @@ body {
   --tw-prose-quote-borders: var(--accent);
   --tw-prose-captions: var(--muted);
   --tw-prose-code: var(--foreground);
-  --tw-prose-th-borders: var(--rule);
+  --tw-prose-th-borders: var(--border-strong);
   --tw-prose-td-borders: var(--border);
 }
 .prose-statlabs :where(h1, h2, h3) {
-  font-family: var(--font-display-serif), serif;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .prose-statlabs :where(h2) {
-  font-size: 2rem;
-  line-height: 1.1;
-  margin-top: 2.25em;
-}
-.prose-statlabs :where(h3) {
   font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: 2em;
 }
 .prose-statlabs :where(a) {
   text-decoration-color: var(--accent);
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
 .prose-statlabs :where(a:hover) {
   color: var(--accent);
 }
-.drop-cap > p:first-child::first-letter {
-  float: left;
-  font-family: var(--font-display-serif), serif;
-  font-size: 4.1em;
-  line-height: 0.82;
-  padding: 0.08em 0.1em 0 0;
-  color: var(--foreground);
-}
 
 .live-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
+  flex: none;
   border-radius: 9999px;
   background: var(--live);
-}
-
-.scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--live) 18%, transparent);
 }
 
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

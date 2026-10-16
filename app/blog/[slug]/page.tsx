@@ -57,69 +57,72 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
   const minutes = Math.max(1, Math.round(post.content.split(/\s+/).length / 230));
 
   return (
-    <article className="mx-auto max-w-[1100px]">
+    <article className="wrap max-w-[760px] py-12 lg:py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      <header className="mx-auto max-w-4xl border-b border-rule pb-8 text-center">
-        <Link href="/blog" className="eyebrow hover:!text-foreground">
-          <span className="mr-3 text-accent">§</span>Analysis
-        </Link>
-        <h1 className="mt-6 font-display text-[42px] leading-[1.0] tracking-[-0.01em] sm:text-[64px]">{post.title}</h1>
-        {post.excerpt && (
-          <p className="mx-auto mt-6 max-w-2xl font-display text-[22px] italic leading-snug text-ink-2">
-            {post.excerpt}
-          </p>
-        )}
-        <div className="eyebrow mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          <span className="!text-foreground">By {post.author}</span>
-          <span aria-hidden>/</span>
-          {post.publishedAt && (
-            <time dateTime={post.publishedAt.toISOString()}>{dateFmt.format(post.publishedAt)}</time>
-          )}
-          <span aria-hidden>/</span>
-          <span>{minutes} min read</span>
+      <Link href="/blog" className="font-mono text-[11.5px] text-accent hover:underline">
+        ◆ StatLabs analysis
+      </Link>
+      <h1 className="mt-4 text-[34px] font-extrabold leading-[1.05] tracking-[-0.035em] [text-wrap:balance] sm:text-[48px]">
+        {post.title}
+      </h1>
+      {post.excerpt && <p className="mt-5 text-[19px] leading-relaxed text-ink-2">{post.excerpt}</p>}
+
+      <div className="mt-6 flex flex-wrap items-center gap-3 border-y border-border py-3.5">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-white" aria-hidden>
+          SL
+        </span>
+        <div className="leading-tight">
+          <div className="text-[13.5px] font-semibold">{post.author}</div>
+          <div className="font-mono text-[11.5px] text-muted">
+            {post.publishedAt && <time dateTime={post.publishedAt.toISOString()}>{dateFmt.format(post.publishedAt)}</time>}
+            {" · "}
+            {minutes} min read
+            {post.sources.length > 0 && ` · ${post.sources.length} sources`}
+          </div>
         </div>
-      </header>
+      </div>
 
       {post.coverUrl && (
         // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote hosts
-        <img src={post.coverUrl} alt="" className="mt-10 w-full border border-border" />
+        <img src={post.coverUrl} alt="" className="mt-8 w-full rounded-xl border border-border" />
       )}
 
-      <div className="mx-auto mt-12 max-w-[680px]">
-        <Markdown dropCap>{post.content}</Markdown>
+      <div className="mt-8">
+        <Markdown>{post.content}</Markdown>
+      </div>
 
-        {post.sources.length > 0 && (
-          <section className="mt-16 border-t border-rule pt-6">
-            <h2 className="eyebrow !text-foreground">Sources</h2>
-            <ol className="mt-4">
-              {post.sources.map((s, i) => (
-                <li key={s.url} className="grid grid-cols-[2rem_1fr] border-b border-border py-2.5 text-[14px] last:border-0">
-                  <span className="num font-mono text-[11px] text-muted pt-0.5">{String(i + 1).padStart(2, "0")}</span>
-                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="link-underline text-ink-2 hover:text-foreground">
-                    {s.title}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
-
-        {post.tags.length > 0 && (
-          <div className="mt-8 flex flex-wrap gap-2">
-            {post.tags.map((t) => (
-              <span key={t} className="border border-border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-wider text-muted">
-                {t}
-              </span>
+      {post.sources.length > 0 && (
+        <section className="card mt-12 p-5">
+          <h2 className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted">Sources</h2>
+          <ol className="mt-2">
+            {post.sources.map((s, i) => (
+              <li key={s.url} className="flex gap-3 border-t border-border py-2.5 text-[14px] first:border-0">
+                <span className="num w-5 shrink-0 pt-0.5 font-mono text-[11px] text-muted">{i + 1}</span>
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="link-underline min-w-0 text-ink-2 hover:text-foreground">
+                  {s.title}
+                </a>
+              </li>
             ))}
-          </div>
-        )}
+          </ol>
+        </section>
+      )}
 
-        <div className="mt-16 border-t-2 border-rule pt-6">
-          <Link href="/blog" className="text-[13px] link-underline">← More analysis</Link>
+      {post.tags.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-1.5">
+          {post.tags.map((t) => (
+            <span key={t} className="rounded-full bg-surface-2 px-2.5 py-0.5 font-mono text-[11px] text-ink-2">
+              {t}
+            </span>
+          ))}
         </div>
+      )}
+
+      <div className="mt-12 flex flex-wrap gap-2.5 border-t border-border pt-6">
+        <Link href="/blog" className="btn">← More analysis</Link>
+        <Link href="/#feed" className="btn">Today&apos;s news feed</Link>
       </div>
     </article>
   );

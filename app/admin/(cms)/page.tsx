@@ -21,7 +21,7 @@ export default async function AdminPosts() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-4xl">Posts</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Posts</h1>
         <Link href="/admin/posts/new" className="btn-primary">New post</Link>
       </div>
       {rows.length === 0 ? (

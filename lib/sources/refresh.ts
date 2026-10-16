@@ -11,7 +11,8 @@ import type { CacheKey } from "./types";
 const TTL_MS: Record<CacheKey, number> = {
   news: 30 * 60_000,
   x: 60 * 60_000,
-  trends: 6 * 60 * 60_000,
+  // Once a day keeps SerpApi within its free 100 searches/month (2 searches per refresh).
+  trends: 24 * 60 * 60_000,
 };
 
 const fetchers = {

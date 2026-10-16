@@ -6,8 +6,8 @@ import { login } from "../actions";
 export default function LoginPage() {
   const [error, action, pending] = useActionState(login, null);
   return (
-    <form action={action} className="mx-auto mt-16 max-w-sm space-y-4 border border-border bg-surface p-6">
-      <h1 className="font-display text-3xl">StatLabs<span className="text-accent">.</span> <span className="text-muted italic">CMS</span></h1>
+    <form action={action} className="card mx-auto mt-16 max-w-sm space-y-4 p-6">
+      <h1 className="text-2xl font-extrabold tracking-tight">StatLabs <span className="text-muted">CMS</span></h1>
       <label className="block text-sm">
         Email
         <input name="email" type="email" required autoComplete="username" className="input mt-1" />

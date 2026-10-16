@@ -1,19 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
-import { Today } from "@/components/Today";
+import { LivePill } from "@/components/LivePill";
 import { Tracker } from "@/components/Tracker";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const displaySerif = Instrument_Serif({
-  variable: "--font-display-serif",
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -29,53 +23,82 @@ export const metadata: Metadata = {
 };
 
 // The site is light-only, even when the visitor's system is set to dark mode.
-export const viewport: Viewport = { colorScheme: "light", themeColor: "#f4f2ec" };
+export const viewport: Viewport = { colorScheme: "light", themeColor: "#f5f5f3" };
+
+function BrandMark() {
+  return (
+    <span className="grid h-[22px] w-[22px] place-items-center rounded-md bg-foreground" aria-hidden>
+      <svg width="12" height="12" viewBox="0 0 12 12">
+        <path d="M1 11 L6 1 L11 11" fill="none" stroke="#fff" strokeWidth="2" />
+        <circle cx="6" cy="8" r="1.4" fill="#ee4b2b" />
+      </svg>
+    </span>
+  );
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <header className="mx-auto w-full max-w-[1280px] px-4 sm:px-6">
-          <div className="flex items-center justify-between border-b border-border py-2">
-            <Today className="eyebrow" />
-            <span className="eyebrow hidden sm:inline">Independent tracker of the road to ASI</span>
-          </div>
-          <div className="flex items-end justify-between border-b-2 border-rule pt-5 pb-3">
-            <Link href="/" className="font-display text-[34px] leading-none tracking-tight sm:text-[40px]">
-              StatLabs<span className="text-accent">.</span>
+        <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
+          <div className="wrap flex h-14 items-center gap-7">
+            <Link href="/" className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight">
+              <BrandMark />
+              StatLabs
             </Link>
-            <nav className="flex items-center gap-4 pb-1 text-[13px] text-ink-2 sm:gap-6">
-              <Link href="/" className="hover:text-foreground">Dashboard</Link>
+            <nav className="hidden items-center gap-6 text-[13.5px] text-ink-2 md:flex" aria-label="Main">
+              <Link href="/#feed" className="hover:text-foreground">Feed</Link>
               <Link href="/blog" className="hover:text-foreground">Analysis</Link>
-              <Link href="/rss.xml" className="hidden hover:text-foreground sm:inline">RSS</Link>
+              <Link href="/#search-interest" className="hover:text-foreground">Search trends</Link>
+              <Link href="/what-is-superintelligence" className="hover:text-foreground">What is ASI?</Link>
             </nav>
+            <div className="ml-auto flex items-center gap-4">
+              <LivePill />
+              <Link href="/blog" className="btn-primary hidden sm:inline-flex">Daily briefing</Link>
+            </div>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-8 pb-20 sm:px-6">{children}</main>
+        <main className="flex-1">{children}</main>
 
-        <footer className="mx-auto w-full max-w-[1280px] px-4 sm:px-6">
-          <div className="grid gap-6 border-t-2 border-rule py-8 sm:grid-cols-[1fr_auto]">
+        <footer className="mt-20 border-t border-border bg-surface">
+          <div className="wrap grid gap-8 py-10 sm:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))]">
             <div>
-              <div className="font-display text-2xl">StatLabs<span className="text-accent">.</span></div>
-              <p className="mt-2 max-w-md text-sm text-muted">
-                Search interest, news and public conversation about artificial superintelligence — measured
-                continuously, analysed daily.
+              <Link href="/" className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight">
+                <BrandMark />
+                StatLabs
+              </Link>
+              <p className="mt-3 max-w-sm text-[13px] text-muted">
+                An independent tracker of news, search interest and public conversation about artificial
+                superintelligence.
               </p>
             </div>
-            <nav className="flex gap-6 self-end text-[13px] text-ink-2">
-              <Link href="/blog" className="hover:text-foreground">Analysis</Link>
-              <Link href="/rss.xml" className="hover:text-foreground">RSS</Link>
-              <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-            </nav>
+            <FooterCol title="Browse" links={[["/#feed", "Feed"], ["/blog", "Analysis"], ["/#search-interest", "Search trends"]]} />
+            <FooterCol title="Learn" links={[["/what-is-superintelligence", "What is superintelligence?"], ["/blog", "Daily briefings"]]} />
+            <FooterCol title="Follow" links={[["/rss.xml", "RSS feed"], ["/privacy", "Privacy"]]} />
           </div>
-          <div className="eyebrow border-t border-border py-4">© StatLabs · statlabs.si</div>
+          <div className="wrap flex flex-wrap justify-between gap-3 border-t border-border py-4 font-mono text-[11.5px] text-muted">
+            <span>© {SITE.name} · statlabs.si</span>
+            <span>No cookies. Visits are counted anonymously.</span>
+          </div>
         </footer>
         <Tracker />
       </body>
     </html>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+  return (
+    <div>
+      <h2 className="mb-3 font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted">{title}</h2>
+      <ul className="grid gap-2 text-[13.5px] text-ink-2">
+        {links.map(([href, label]) => (
+          <li key={label}>
+            <Link href={href} className="hover:text-foreground">{label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
