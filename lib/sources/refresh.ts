@@ -1,10 +1,10 @@
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, hasDb, sourceCache } from "@/lib/db";
 import { writeCache } from "./cache";
 import { fetchMastodon } from "./mastodon";
 import { fetchNews } from "./news";
-import { fetchTrends } from "./trends";
+import { fetchTrends, TRENDS_VERSION } from "./trends";
 import { fetchX } from "./x";
 import type { CacheKey } from "./types";
 
@@ -13,9 +13,14 @@ const TTL_MS: Record<CacheKey, number> = {
   news: 30 * 60_000,
   x: 60 * 60_000,
   mastodon: 30 * 60_000,
-  // Once a day keeps SerpApi within its free 100 searches/month (2 searches per refresh).
+  // Once a day keeps SerpApi within its free 100 searches/month (3 searches per refresh).
   trends: 24 * 60 * 60_000,
 };
+
+/** Payload versions per source; cached data with another version is replaced without waiting for the TTL. */
+const VERSIONS: Partial<Record<CacheKey, number>> = { trends: TRENDS_VERSION };
+/** Minimum time between attempts to replace outdated data, so a failing API isn't retried on every visit. */
+const OUTDATED_RETRY_MS = 15 * 60_000;
 
 const fetchers = {
   news: fetchNews,
@@ -35,6 +40,21 @@ async function claim(key: CacheKey, force: boolean) {
     .where(eq(sourceCache.key, key));
   if (!existing) return true;
   if (force) return true;
+  const version = VERSIONS[key];
+  if (version != null) {
+    const outdated = await db()
+      .update(sourceCache)
+      .set({ fetchedAt: new Date() })
+      .where(
+        and(
+          eq(sourceCache.key, key),
+          sql`coalesce((${sourceCache.payload}->>'version')::int, 0) <> ${version}`,
+          lt(sourceCache.fetchedAt, new Date(Date.now() - OUTDATED_RETRY_MS)),
+        ),
+      )
+      .returning({ key: sourceCache.key });
+    if (outdated.length > 0) return true;
+  }
   const claimed = await db()
     .update(sourceCache)
     .set({ fetchedAt: new Date() })

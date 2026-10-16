@@ -159,6 +159,10 @@ export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
         ))}
       </ul>
 
+      {summary.reference && summary.reference.per100 != null && (
+        <ReferenceComparison main={summary.mainTerm} reference={summary.reference.term} per100={summary.reference.per100} />
+      )}
+
       {summary.rising[0] && (
         <p className="mt-1 border-t border-border pt-3 text-[13px] text-ink-2">
           People are also searching for <b className="font-semibold text-foreground">“{summary.rising[0].query}”</b>
@@ -171,13 +175,44 @@ export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
   );
 }
 
+/** "For every 100 searches for AI there are N for super intelligence", with bars drawn to the same scale. */
+function ReferenceComparison({ main, reference, per100 }: { main: string; reference: string; per100: number }) {
+  const amount = per100 < 1 ? "fewer than 1" : per100 < 10 ? `about ${per100.toFixed(1)}` : `about ${Math.round(per100)}`;
+  const bars = [
+    { term: reference, width: 100, value: "100" },
+    { term: main, width: Math.min(100, per100), value: per100 < 1 ? "<1" : per100 < 10 ? per100.toFixed(1) : String(Math.round(per100)) },
+  ];
+  return (
+    <div className="mt-1 border-t border-border pt-3">
+      <p className="text-[14px] leading-relaxed text-ink-2">
+        For every <b className="text-foreground">100</b> Google searches for “{reference}”, there are{" "}
+        <b className="text-foreground">{amount}</b> for “{main}”.
+      </p>
+      <div className="mt-2.5 grid gap-1.5" aria-hidden>
+        {bars.map((b) => (
+          <div key={b.term} className="grid grid-cols-[minmax(0,7.5rem)_1fr_2.5rem] items-center gap-2 text-[12px]">
+            <span className="truncate text-ink-2">{b.term}</span>
+            <span className="h-2 overflow-hidden rounded-full bg-surface-2">
+              <span
+                className={`block h-full rounded-full ${b.term === main ? "bg-accent" : "bg-border-strong"}`}
+                style={{ width: `${Math.max(b.width, 0.8)}%` }}
+              />
+            </span>
+            <span className="num text-right font-mono text-[11px] text-muted">{b.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SearchInterestPending() {
   return (
     <article id="search-interest" className="card scroll-mt-24 p-5 sm:p-6">
-      <h2 className="text-[18px] font-bold tracking-tight">How often people Google “superintelligence”</h2>
+      <h2 className="text-[18px] font-bold tracking-tight">How often people Google “super intelligence”</h2>
       <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-        This chart will show how often people search for superintelligence, AGI and artificial superintelligence
-        on Google, with a plain-English summary of what changed this month.
+        This chart will show how often people search Google for “super intelligence”, how that compares with
+        searches for “AI”, and a plain-English summary of what changed this month.
       </p>
       <div className="mt-5 grid h-48 place-items-center rounded-lg border border-dashed border-border-strong">
         <p className="max-w-xs text-center text-[13.5px] text-muted">
