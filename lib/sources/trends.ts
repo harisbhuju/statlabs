@@ -1,6 +1,11 @@
 import type { TrendsPayload } from "./types";
 
-export const TREND_TERMS = ["superintelligence", "AGI", "artificial superintelligence"];
+// Terms are compared in one Google Trends request, so they share a scale. Avoid "AGI": on Google it
+// mostly means "adjusted gross income" and its tax-season volume flattens the other lines.
+export const TREND_TERMS = ["superintelligence", "super intelligence", "artificial general intelligence"];
+
+// Google's "rising searches" include unrelated breakouts; keep only queries about the subject.
+const RELEVANT_QUERY = /intellig|\bai\b|\bagi\b|\basi\b|artificial|openai|anthropic|deepmind|alignment|ai safety|chatgpt|gpt|robot/i;
 
 interface TrendsProvider {
   name: string;
@@ -26,6 +31,8 @@ type SerpTimeline = {
   interest_over_time?: {
     timeline_data?: Array<{
       timestamp: string;
+      /** Set on the current, still-incomplete period. */
+      partial_data?: boolean;
       values: Array<{ query: string; extracted_value: number }>;
     }>;
   };
@@ -53,7 +60,8 @@ const serpapi: TrendsProvider = {
       ).then((r) => r.json() as Promise<SerpRelated>),
     ]);
 
-    const rows = timeline.interest_over_time?.timeline_data ?? [];
+    // Drop the current incomplete day: its low partial count would read as a crash in searches.
+    const rows = (timeline.interest_over_time?.timeline_data ?? []).filter((r) => !r.partial_data);
     if (!rows.length) throw new Error("SerpApi returned no timeline data");
     return {
       source: serpapi.name,
@@ -65,7 +73,10 @@ const serpapi: TrendsProvider = {
         for (const v of row.values) point[v.query] = v.extracted_value;
         return point;
       }),
-      rising: (related.related_queries?.rising ?? []).slice(0, 8),
+      rising: (related.related_queries?.rising ?? [])
+        .filter((r) => RELEVANT_QUERY.test(r.query))
+        .map(({ query, value }) => ({ query, value }))
+        .slice(0, 8),
     };
   },
 };

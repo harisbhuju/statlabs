@@ -14,10 +14,12 @@ export type TrendsSummary = {
 };
 
 const DAY = 86400_000;
+/** Below this average score (out of 100) a term has too few searches for a percentage to mean anything. */
+const MIN_AVERAGE = 3;
 
-/** Compares a ratio of "now vs a month ago" to plain words. */
+/** Compares "recent average vs a month earlier" in plain words. */
 export function verdictFor(ratio: number | null): Verdict {
-  if (ratio == null || !Number.isFinite(ratio)) return { kind: "unknown", label: "Not enough data", ratio: null };
+  if (ratio == null || !Number.isFinite(ratio)) return { kind: "unknown", label: "Too few searches to compare", ratio: null };
   if (ratio >= 1.95) return { kind: "up", label: `${round1(ratio)}× more searches`, ratio };
   if (ratio >= 1.15) return { kind: "up", label: `${Math.round((ratio - 1) * 100)}% more searches`, ratio };
   if (ratio <= 0.85) return { kind: "down", label: `${Math.round((1 - ratio) * 100)}% fewer searches`, ratio };
@@ -25,61 +27,67 @@ export function verdictFor(ratio: number | null): Verdict {
 }
 
 const round1 = (n: number) => (Math.round(n * 10) / 10).toString();
+const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
 /**
- * Turns raw Google Trends points into plain-language statements, all computed from the data:
- * each term's latest value is compared with its value about 30 days earlier.
+ * Turns Google Trends points into plain-language statements, all computed from the data.
+ * Daily numbers are noisy, so each term's average over the latest 7 days is compared with its
+ * average over the same span about 30 days earlier.
  */
 export function summarizeTrends(data: TrendsPayload): TrendsSummary | null {
   const points = data.points;
-  const mainTerm = data.terms[0];
-  if (points.length < 2 || !mainTerm) return null;
+  if (points.length < 2 || data.terms.length === 0) return null;
 
-  const value = (i: number, term: string) => Number(points[i][term] ?? 0);
   const lastIdx = points.length - 1;
   const lastTime = Date.parse(points[lastIdx].date);
-  let monthAgoIdx = 0;
-  let best = Infinity;
-  points.forEach((p, i) => {
-    const d = Math.abs(Date.parse(p.date) - (lastTime - 30 * DAY));
-    if (d < best) {
-      best = d;
-      monthAgoIdx = i;
-    }
+  const gapDays = (lastTime - Date.parse(points[0].date)) / lastIdx / DAY;
+  const unit = gapDays >= 5 ? "week" : "day";
+  const span = unit === "week" ? 1 : 7;
+
+  const indexNear = (time: number) =>
+    points.reduce(
+      (best, p, i) => (Math.abs(Date.parse(p.date) - time) < Math.abs(Date.parse(points[best].date) - time) ? i : best),
+      0,
+    );
+  const thenEnd = indexNear(lastTime - 30 * DAY);
+  const value = (i: number, term: string) => Number(points[i][term] ?? 0);
+  const windowAvg = (end: number, term: string) =>
+    avg(Array.from({ length: Math.min(span, end + 1) }, (_, k) => value(end - k, term)));
+
+  const compare = data.terms.map((term) => {
+    const now = windowAvg(lastIdx, term);
+    const then = windowAvg(thenEnd, term);
+    const ratio = Math.max(now, then) >= MIN_AVERAGE && then > 0 ? now / then : null;
+    return { term, verdict: verdictFor(ratio), recent: now };
   });
 
-  const ratioFor = (term: string) => {
-    const then = value(monthAgoIdx, term);
-    return then > 0 ? value(lastIdx, term) / then : null;
-  };
-
-  const compare = data.terms.map((term) => ({ term, verdict: verdictFor(ratioFor(term)) }));
-  const main = compare[0].verdict;
-  const subject = `Searches for “${mainTerm}”`;
+  // Lead with the term people search for most right now.
+  const main = compare.reduce((best, c) => (c.recent > best.recent ? c : best), compare[0]);
+  const subject = `Searches for “${main.term}”`;
+  const v = main.verdict;
   let takeaway: TrendsSummary["takeaway"];
-  if (main.kind === "up" && main.ratio! >= 1.95) {
-    takeaway = { before: `${subject} are `, highlight: `${round1(main.ratio!)} times higher`, after: " than a month ago." };
-  } else if (main.kind === "up") {
-    takeaway = { before: `${subject} are `, highlight: `${Math.round((main.ratio! - 1) * 100)}% higher`, after: " than a month ago." };
-  } else if (main.kind === "down") {
-    takeaway = { before: `${subject} are `, highlight: `${Math.round((1 - main.ratio!) * 100)}% lower`, after: " than a month ago." };
-  } else if (main.kind === "same") {
+  if (v.kind === "up" && v.ratio! >= 1.95) {
+    takeaway = { before: `${subject} are `, highlight: `${round1(v.ratio!)} times higher`, after: " than a month ago." };
+  } else if (v.kind === "up") {
+    takeaway = { before: `${subject} are `, highlight: `${Math.round((v.ratio! - 1) * 100)}% higher`, after: " than a month ago." };
+  } else if (v.kind === "down") {
+    takeaway = { before: `${subject} are `, highlight: `${Math.round((1 - v.ratio!) * 100)}% lower`, after: " than a month ago." };
+  } else if (v.kind === "same") {
     takeaway = { before: `${subject} are `, highlight: "about the same", after: " as a month ago." };
   } else {
-    takeaway = { before: `${subject}: `, highlight: "not enough data yet", after: "." };
+    takeaway = { before: `${subject} are still `, highlight: "too low to compare", after: " with a month ago." };
   }
 
-  const series = points.map((p, i) => ({ date: p.date, value: value(i, mainTerm) }));
+  const series = points.map((p, i) => ({ date: p.date, value: value(i, main.term) }));
   const peakIndex = series.reduce((best, p, i) => (p.value > series[best].value ? i : best), 0);
-  const gap = (Date.parse(points[lastIdx].date) - Date.parse(points[0].date)) / lastIdx / DAY;
 
   return {
-    mainTerm,
+    mainTerm: main.term,
     takeaway,
-    compare,
+    compare: compare.map(({ term, verdict }) => ({ term, verdict })),
     series,
     peakIndex,
-    unit: gap >= 5 ? "week" : "day",
+    unit,
     rising: data.rising,
   };
 }

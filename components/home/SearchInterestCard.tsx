@@ -17,11 +17,13 @@ const VERDICT_STYLE = {
 } as const;
 const VERDICT_ICON = { up: "▲ ", down: "▼ ", same: "", unknown: "" } as const;
 
-function describe(value: number) {
-  if (value >= 100) return "The busiest point so far";
-  if (value >= 60) return `Very busy: ${value}% of the busiest`;
-  if (value >= 30) return `Picking up: ${value}% of the busiest`;
-  return `Quiet: ${value}% of the busiest`;
+/** Describes a point relative to the busiest point in the period. */
+function describe(value: number, peak: number, unit: string) {
+  const pct = peak > 0 ? Math.round((value / peak) * 100) : 0;
+  if (pct >= 100) return `The busiest ${unit} in 3 months`;
+  if (pct >= 60) return `Very busy: ${pct}% of the busiest ${unit}`;
+  if (pct >= 30) return `Picking up: ${pct}% of the busiest ${unit}`;
+  return `Quiet: ${pct}% of the busiest ${unit}`;
 }
 
 export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
@@ -29,8 +31,11 @@ export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
   const [hover, setHover] = useState<number | null>(null);
 
   const n = series.length;
+  const peak = series[peakIndex].value;
+  // Scale to the busiest point (not a fixed 0–100) so the shape is readable at any volume.
+  const top = Math.max(peak, 1);
   const x = (i: number) => PAD.l + (i / (n - 1)) * (W - PAD.l - PAD.r);
-  const y = (v: number) => PAD.t + (1 - v / 100) * (H - PAD.t - PAD.b);
+  const y = (v: number) => PAD.t + (1 - v / top) * (H - PAD.t - PAD.b);
   const pts = series.map((p, i) => `${x(i)},${y(p.value)}`).join(" ");
 
   // Month labels at the first point of each month, skipping any that would collide.
@@ -137,7 +142,7 @@ export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
               {unit === "week" ? "Week of " : ""}
               {dayFmt.format(new Date(hoverPoint.date))}
             </div>
-            {describe(hoverPoint.value)}
+            {describe(hoverPoint.value, peak, unitWord)}
           </div>
         )}
       </div>
@@ -160,7 +165,7 @@ export function SearchInterestCard({ summary }: { summary: TrendsSummary }) {
         </p>
       )}
       <p className="mt-3 font-mono text-[10.5px] text-muted">
-        Compared with about 30 days ago · Source: Google Trends
+        Last 7 days compared with the same span a month earlier · Source: Google Trends
       </p>
     </article>
   );
