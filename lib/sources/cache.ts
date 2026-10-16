@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { db, hasDb, sourceCache } from "@/lib/db";
-import type { CacheKey, NewsPayload, TrendsPayload, XPayload } from "./types";
+import type { CacheKey, MastodonPayload, NewsPayload, TrendsPayload, XPayload } from "./types";
 
-type PayloadMap = { trends: TrendsPayload; news: NewsPayload; x: XPayload };
+type PayloadMap = { trends: TrendsPayload; news: NewsPayload; x: XPayload; mastodon: MastodonPayload };
 export type Cached<K extends CacheKey> = { payload: PayloadMap[K]; fetchedAt: Date } | null;
 
 export async function readCache<K extends CacheKey>(key: K): Promise<Cached<K>> {

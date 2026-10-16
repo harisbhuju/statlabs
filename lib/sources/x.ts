@@ -1,4 +1,4 @@
-import type { XPayload, XPost } from "./types";
+import type { SocialPost, XPayload } from "./types";
 
 interface XProvider {
   name: string;
@@ -22,16 +22,18 @@ const twitterApiIo: XProvider = {
   name: "X (via twitterapi.io)",
   enabled: () => Boolean(process.env.X_API_KEY),
   async fetch() {
-    const since = new Date(Date.now() - 2 * 86400_000).toISOString().slice(0, 10);
-    const query = `(superintelligence OR "artificial superintelligence" OR #ASI) min_faves:20 -filter:retweets lang:en since:${since}`;
+    // twitterapi.io asks for since_time (unix seconds) rather than since:YYYY-MM-DD.
+    const sinceTime = Math.floor((Date.now() - 2 * 86400_000) / 1000);
+    const query = `(superintelligence OR "super intelligence" OR "artificial superintelligence") min_faves:20 -filter:retweets -filter:replies lang:en since_time:${sinceTime}`;
     const res = await fetch(
       `https://api.twitterapi.io/twitter/tweet/advanced_search?queryType=Top&query=${encodeURIComponent(query)}`,
       { headers: { "X-API-Key": process.env.X_API_KEY! }, cache: "no-store" },
     );
     if (!res.ok) throw new Error(`twitterapi.io responded ${res.status}`);
     const data = (await res.json()) as { tweets?: TwitterApiIoTweet[] };
-    const posts: XPost[] = (data.tweets ?? []).map((t) => ({
+    const posts: SocialPost[] = (data.tweets ?? []).map((t) => ({
       id: t.id,
+      network: "X",
       url: t.url || `https://x.com/${t.author.userName}/status/${t.id}`,
       text: t.text,
       createdAt: new Date(t.createdAt).toISOString(),
@@ -44,7 +46,7 @@ const twitterApiIo: XProvider = {
   },
 };
 
-function topHashtags(posts: XPost[]) {
+export function topHashtags(posts: SocialPost[]) {
   const counts = new Map<string, number>();
   for (const p of posts) {
     for (const m of p.text.matchAll(/#(\w{2,})/g)) {

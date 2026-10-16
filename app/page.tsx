@@ -12,21 +12,22 @@ import { SITE } from "@/lib/site";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [trends, news, x, posts, postCount] = await Promise.all([
+  const [trends, news, x, mastodon, posts, postCount] = await Promise.all([
     readCache("trends"),
     readCache("news"),
     readCache("x"),
+    readCache("mastodon"),
     listPublished(12),
     countPublished(),
   ]);
 
   const newsItems = news?.payload.items ?? [];
-  const xPosts = x?.payload.posts ?? [];
+  const social = [...(x?.payload.posts ?? []), ...(mastodon?.payload.posts ?? [])];
   const summary = trends ? summarizeTrends(trends.payload) : null;
-  const feed = buildFeed({ news: newsItems, x: xPosts, posts });
+  const feed = buildFeed({ news: newsItems, social, posts });
   const stories24h = countSince(newsItems, 86400_000);
   const latest = posts[0];
-  const updatedAt = [news?.fetchedAt, x?.fetchedAt, trends?.fetchedAt]
+  const updatedAt = [news?.fetchedAt, x?.fetchedAt, mastodon?.fetchedAt, trends?.fetchedAt]
     .filter((d): d is Date => Boolean(d))
     .sort((a, b) => b.getTime() - a.getTime())[0];
 
@@ -54,8 +55,8 @@ export default async function Home() {
             What the world is saying about <span className="text-accent">superintelligence</span>
           </h1>
           <p className="mt-5 max-w-[34em] text-[16.5px] leading-relaxed text-ink-2">
-            News, search interest and the conversation on X about artificial superintelligence, gathered in one
-            place. Every entry links to its source, and a new sourced briefing is published each morning.
+            News, search interest and the conversation on social media about artificial superintelligence,
+            gathered in one place. Every entry links to its source, and a new sourced briefing is published each morning.
           </p>
           <div className="mt-7 flex flex-wrap gap-2.5">
             <Link href={latest ? `/blog/${latest.slug}` : "/blog"} className="btn-primary h-10 px-5 text-[14px]">
@@ -75,7 +76,7 @@ export default async function Home() {
         <div className="min-w-0">{summary ? <SearchInterestCard summary={summary} /> : <SearchInterestPending />}</div>
       </section>
 
-      <Feed items={feed} rising={summary?.rising ?? []} xConnected={Boolean(x)} />
+      <Feed items={feed} rising={summary?.rising ?? []} />
     </div>
   );
 }

@@ -12,6 +12,7 @@ type Bucket = "all" | FeedItem["bucket"];
 const BUCKETS: Array<{ id: Bucket; label: string; pill: string }> = [
   { id: "all", label: "Everything", pill: "All" },
   { id: "news", label: "News", pill: "News" },
+  { id: "mastodon", label: "Mastodon", pill: "Mastodon" },
   { id: "x", label: "Posts on X", pill: "X posts" },
   { id: "hn", label: "Hacker News", pill: "Hacker News" },
   { id: "analysis", label: "StatLabs analysis", pill: "Analysis" },
@@ -30,18 +31,16 @@ function initials(source: string) {
 export function Feed({
   items,
   rising,
-  xConnected,
 }: {
   items: FeedItem[];
   rising: Array<{ query: string; value: string }>;
-  xConnected: boolean;
 }) {
   const [bucket, setBucket] = useState<Bucket>("all");
   const [topic, setTopic] = useState<Topic | null>(null);
   const [limit, setLimit] = useState(PAGE);
 
   const bucketCounts = useMemo(() => {
-    const c: Record<Bucket, number> = { all: items.length, news: 0, hn: 0, x: 0, analysis: 0 };
+    const c: Record<Bucket, number> = { all: items.length, news: 0, hn: 0, x: 0, mastodon: 0, analysis: 0 };
     for (const it of items) c[it.bucket]++;
     return c;
   }, [items]);
@@ -147,12 +146,6 @@ export function Feed({
               Show more <span className="num font-mono text-[11px] text-muted">{visible.length - limit} left</span>
             </button>
           </div>
-        )}
-
-        {!xConnected && (
-          <p className="mt-6 rounded-lg border border-dashed border-border-strong bg-surface px-4 py-3 text-[13px] text-muted">
-            Posts from X will appear in this feed once the X data source is connected.
-          </p>
         )}
       </div>
     </section>
@@ -265,7 +258,12 @@ function FeedCard({ item }: { item: FeedItem }) {
     );
   }
 
-  if (item.kind === "x") {
+  if (item.kind === "social") {
+    const m = item.metrics!;
+    const stats =
+      item.network === "Mastodon"
+        ? [`${compact.format(m.likes)} likes`, `${compact.format(m.reposts)} boosts`, `${compact.format(m.replies ?? 0)} replies`]
+        : [`${compact.format(m.likes)} likes`, `${compact.format(m.reposts)} reposts`, `${compact.format(m.views)} views`];
     return (
       <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className={base}>
         <div className="flex items-center gap-2.5">
@@ -274,16 +272,13 @@ function FeedCard({ item }: { item: FeedItem }) {
           </span>
           <div className="min-w-0 leading-tight">
             <b className="block truncate text-[13px] font-semibold">{item.author!.name}</b>
-            <span className="font-mono text-[11.5px] text-muted">
+            <span className="block truncate font-mono text-[11.5px] text-muted">
               @{item.author!.handle} · <TimeAgo iso={item.publishedAt} />
             </span>
           </div>
         </div>
-        <p className="mt-3 line-clamp-6 whitespace-pre-line text-[14px] leading-relaxed text-ink-2">{item.text}</p>
-        <CardFoot
-          left={`${compact.format(item.metrics!.likes)} likes · ${compact.format(item.metrics!.reposts)} reposts · ${compact.format(item.metrics!.views)} views`}
-          right="X"
-        />
+        <p className="mt-3 line-clamp-6 whitespace-pre-line break-words text-[14px] leading-relaxed text-ink-2">{item.text}</p>
+        <CardFoot left={stats.join(" · ")} right={item.network!} />
       </a>
     );
   }

@@ -40,7 +40,7 @@ export default function OgImage() {
           <span style={{ color: "#ee4b2b" }}>superintelligence</span>
         </div>
         <div style={{ display: "flex", fontSize: 26, color: "#4b4a46" }}>
-          Live news · Google search interest · posts on X · daily briefing — statlabs.si
+          Live news · Google search interest · social posts · daily briefing — statlabs.si
         </div>
       </div>
     ),

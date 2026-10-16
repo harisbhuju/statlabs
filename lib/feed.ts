@@ -1,27 +1,53 @@
 import type { Post } from "@/lib/db";
-import type { NewsItem, XPost } from "@/lib/sources/types";
+import type { NewsItem, SocialNetwork, SocialPost } from "@/lib/sources/types";
 import { classifyTopic, type Topic } from "@/lib/topics";
 
-export type FeedKind = "news" | "x" | "analysis";
+export type FeedKind = "news" | "social" | "analysis";
 
 export type FeedItem = {
   id: string;
   kind: FeedKind;
   /** Narrower source bucket used by the sidebar (Hacker News is news, but counted on its own). */
-  bucket: "news" | "hn" | "x" | "analysis";
+  bucket: "news" | "hn" | "x" | "mastodon" | "analysis";
   title: string;
   text?: string;
   url: string;
   source: string;
+  network?: SocialNetwork;
   publishedAt: string;
   topic: Topic;
-  metrics?: { likes: number; reposts: number; views: number };
+  metrics?: { likes: number; reposts: number; views: number; replies?: number };
   author?: { name: string; handle: string };
   readMinutes?: number;
   sourceCount?: number;
 };
 
-export function buildFeed({ news, x, posts }: { news: NewsItem[]; x: XPost[]; posts: Post[] }): FeedItem[] {
+function socialItem(p: SocialPost): FeedItem {
+  return {
+    id: `${p.network}-${p.id}`,
+    kind: "social",
+    bucket: p.network === "X" ? "x" : "mastodon",
+    title: p.text,
+    text: p.text,
+    url: p.url,
+    source: p.network,
+    network: p.network,
+    publishedAt: p.createdAt,
+    topic: classifyTopic(p.text),
+    metrics: { likes: p.likes, reposts: p.reposts, views: p.views, replies: p.replies },
+    author: { name: p.author.name, handle: p.author.handle },
+  };
+}
+
+export function buildFeed({
+  news,
+  social,
+  posts,
+}: {
+  news: NewsItem[];
+  social: SocialPost[];
+  posts: Post[];
+}): FeedItem[] {
   const items: FeedItem[] = [
     ...posts.map((p) => ({
       id: `post-${p.id}`,
@@ -46,19 +72,7 @@ export function buildFeed({ news, x, posts }: { news: NewsItem[]; x: XPost[]; po
       publishedAt: n.publishedAt,
       topic: classifyTopic(n.title),
     })),
-    ...x.map((p) => ({
-      id: `x-${p.id}`,
-      kind: "x" as const,
-      bucket: "x" as const,
-      title: p.text,
-      text: p.text,
-      url: p.url,
-      source: "X",
-      publishedAt: p.createdAt,
-      topic: classifyTopic(p.text),
-      metrics: { likes: p.likes, reposts: p.reposts, views: p.views },
-      author: { name: p.author.name, handle: p.author.handle },
-    })),
+    ...social.map(socialItem),
   ];
   return items.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
