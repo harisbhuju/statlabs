@@ -102,7 +102,7 @@ export function Feed({
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {buckets.map((b) => (
             <button key={b.id} type="button" className="pill" aria-pressed={bucket === b.id} onClick={() => pickBucket(b.id)}>
-              {b.pill} <span className="num font-mono text-[11px] text-muted">{bucketCounts[b.id]}</span>
+              <PillLabel count={bucketCounts[b.id]}>{b.pill}</PillLabel>
             </button>
           ))}
           {topic && (
@@ -122,7 +122,7 @@ export function Feed({
                 aria-pressed={topic === t}
                 onClick={() => pickTopic(t)}
               >
-                {t} <span className="num font-mono text-[11px] text-muted">{count}</span>
+                <PillLabel count={count}>{t}</PillLabel>
               </button>
             ))}
           </div>
@@ -174,6 +174,16 @@ function RailGroup({
   );
 }
 
+/** Label + count on a shared text baseline (centering them misaligns the smaller mono digits). */
+function PillLabel({ count, children }: { count: number; children: React.ReactNode }) {
+  return (
+    <span className="flex items-baseline gap-1.5">
+      {children}
+      <span className="num font-mono text-[11px] text-muted">{count}</span>
+    </span>
+  );
+}
+
 function RailButton({
   active,
   onClick,
@@ -190,7 +200,7 @@ function RailButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13.5px] transition-colors ${
+      className={`flex items-baseline justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13.5px] transition-colors ${
         active ? "bg-surface font-medium text-foreground shadow-[inset_0_0_0_1px_var(--border)]" : "text-ink-2 hover:bg-surface-2 hover:text-foreground"
       }`}
     >
@@ -237,7 +247,7 @@ function FeedCard({ item }: { item: FeedItem }) {
 
   if (item.kind === "analysis") {
     return (
-      <Link href={item.url} className={`${base} !border-foreground`}>
+      <Link href={item.url} className={`${base} !border-foreground bg-[linear-gradient(var(--analysis-soft),var(--surface)_140px)]`}>
         <div className="font-mono text-[11.5px] text-accent">
           ◆ StatLabs analysis · <TimeAgo iso={item.publishedAt} />
         </div>
@@ -253,7 +263,7 @@ function FeedCard({ item }: { item: FeedItem }) {
             Reading time <b className="font-medium text-foreground">{item.readMinutes} min</b>
           </div>
         </div>
-        <CardFoot left={item.topic} right="Read →" />
+        <CardFoot left={item.topic} right={<span className="kind text-[var(--accent-ink)]">Read →</span>} />
       </Link>
     );
   }
@@ -264,10 +274,16 @@ function FeedCard({ item }: { item: FeedItem }) {
       item.network === "Mastodon"
         ? [`${compact.format(m.likes)} likes`, `${compact.format(m.reposts)} boosts`, `${compact.format(m.replies ?? 0)} replies`]
         : [`${compact.format(m.likes)} likes`, `${compact.format(m.reposts)} reposts`, `${compact.format(m.views)} views`];
+    // Social posts sit on a faint violet tint; X keeps its black avatar, Mastodon goes violet.
+    const mastodon = item.network === "Mastodon";
     return (
-      <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className={base}>
+      <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className={`${base} !border-social-line bg-social-soft`}>
         <div className="flex items-center gap-2.5">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-white">
+          <span
+            className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white ${
+              mastodon ? "bg-social" : "bg-foreground"
+            }`}
+          >
             {initials(item.author!.name)}
           </span>
           <div className="min-w-0 leading-tight">
@@ -278,7 +294,11 @@ function FeedCard({ item }: { item: FeedItem }) {
           </div>
         </div>
         <p className="mt-3 line-clamp-6 whitespace-pre-line break-words text-[14px] leading-relaxed text-ink-2">{item.text}</p>
-        <CardFoot left={stats.join(" · ")} right={item.network!} />
+        <CardFoot
+          left={stats.join(" · ")}
+          right={<span className={`kind ${mastodon ? "text-social" : "text-foreground"}`}>{item.network}</span>}
+          className="border-social-line"
+        />
       </a>
     );
   }
@@ -286,7 +306,7 @@ function FeedCard({ item }: { item: FeedItem }) {
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className={base}>
       <div className="flex items-center gap-2.5">
-        <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-md border border-border bg-surface-2 text-[11px] font-bold">
+        <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-md border border-news-line bg-news-soft text-[11px] font-bold text-news">
           {initials(item.source)}
         </span>
         <div className="min-w-0 leading-tight">
@@ -295,14 +315,14 @@ function FeedCard({ item }: { item: FeedItem }) {
         </div>
       </div>
       <h3 className="mt-3 text-[16px] font-semibold leading-snug tracking-[-0.01em] [text-wrap:pretty]">{item.title}</h3>
-      <CardFoot left={`${item.bucket === "hn" ? "Hacker News" : "News"} · ${item.topic}`} right="↗" />
+      <CardFoot left={item.topic} right={<span className="kind text-news">{item.bucket === "hn" ? "Hacker News" : "News"} ↗</span>} />
     </a>
   );
 }
 
-function CardFoot({ left, right }: { left: string; right: string }) {
+function CardFoot({ left, right, className = "border-border" }: { left: string; right: React.ReactNode; className?: string }) {
   return (
-    <div className="mt-3.5 flex items-center justify-between gap-2.5 border-t border-border pt-2.5 font-mono text-[11.5px] text-muted">
+    <div className={`mt-3.5 flex items-center justify-between gap-2.5 border-t pt-2.5 font-mono text-[11.5px] text-muted ${className}`}>
       <span className="min-w-0 truncate">{left}</span>
       <span className="shrink-0">{right}</span>
     </div>
