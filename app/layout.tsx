@@ -25,6 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: { card: "summary_large_image", title, description },
     // Google Search Console ownership check.
     verification: { google: "WaCKPZ0Hs06ubz6Pnz2QahhnMhOcCu3AqBDz2NTQi40" },
+    // Google AdSense site ownership check.
+    other: { "google-adsense-account": "ca-pub-4083162528970417" },
   };
 }
 
